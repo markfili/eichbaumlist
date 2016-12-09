@@ -4,7 +4,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
@@ -14,9 +13,9 @@ import java.util.List;
  * Created by marko on 23/11/16.
  */
 
-class TreeAdapter extends RecyclerView.Adapter<TreeAdapter.ListViewHolder> {
+public class TreeAdapter extends RecyclerView.Adapter<TreeAdapter.ListViewHolder> {
 
-    private static final String TAG = TreeAdapter.class.getSimpleName();
+    private static final int PARENT_OFFSET = 1;
     private List<TreeItem> treeItems;
 
     TreeAdapter(TreeItem root) {
@@ -42,24 +41,19 @@ class TreeAdapter extends RecyclerView.Adapter<TreeAdapter.ListViewHolder> {
     @Override
     public void onBindViewHolder(final ListViewHolder holder, int position) {
         final TreeItem item = treeItems.get(position);
-        holder.itemView.setPadding((item.parent.level + item.level) * 50, 0, 0, 0);
-        holder.title.setText((String) item.value);
-        holder.itemView.setTag(R.integer.tag_tree_item, item);
-        item.position = holder.getAdapterPosition() + 1;
-        holder.icon.setEnabled(item.children != null);
-        holder.icon.setOnClickListener(new View.OnClickListener() {
+        item.position = holder.getAdapterPosition();
+        holder.setItem(item);
+        holder.setClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                TreeItem treeItem = (TreeItem) ((LinearLayout) view.getParent()).getTag(R.integer.tag_tree_item);
                 if (view.isEnabled()) {
-                    processPosition(treeItem.position - 1);
+                    processPosition((TreeItem) view.getTag(R.integer.tag_tree_item));
                 }
             }
         });
     }
 
-    private void processPosition(int holderPosition) {
-        TreeItem item = treeItems.get(holderPosition);
+    private void processPosition(TreeItem item) {
         if (item.isExpanded) {
             collapse(item);
         } else {
@@ -70,12 +64,14 @@ class TreeAdapter extends RecyclerView.Adapter<TreeAdapter.ListViewHolder> {
     }
 
     private void expand(TreeItem item) {
+        // get selected item's position as starting position for its children
         int parentPosition = item.position;
         int childrenCount = item.children.size();
         TreeItem child;
         for (int i = 0; i < childrenCount; i++) {
             child = item.children.get(i);
-            child.position = parentPosition + i;
+            // add child below it's parent
+            child.position = parentPosition + PARENT_OFFSET + i;
             treeItems.add(child.position, child);
         }
     }
@@ -86,6 +82,7 @@ class TreeAdapter extends RecyclerView.Adapter<TreeAdapter.ListViewHolder> {
         for (int i = 0; i < childrenCount; i++) {
             child = item.children.get(i);
             if (child.isExpanded) {
+                // go recursive if children are expanded
                 collapse(child);
                 child.isExpanded = !child.isExpanded;
             }
@@ -94,15 +91,31 @@ class TreeAdapter extends RecyclerView.Adapter<TreeAdapter.ListViewHolder> {
     }
 
 
-    static class ListViewHolder extends RecyclerView.ViewHolder {
+    public static class ListViewHolder extends RecyclerView.ViewHolder {
 
         ToggleButton icon;
         TextView title;
 
         ListViewHolder(View itemView) {
             super(itemView);
+            // todo swap these views with customizable views
             icon = (ToggleButton) itemView.findViewById(R.id.expand_icon);
             title = (TextView) itemView.findViewById(R.id.text);
+        }
+
+        public void setItem(TreeItem item) {
+            // set left padding to indicate child status
+            itemView.setPadding((item.parent.level + item.level) * 50, 0, 0, 0);
+
+            title.setText((String) item.value);
+            // set expandable if the item contains children
+            icon.setEnabled(item.children != null);
+            // set TreeItem in relation to this view as view's tag for later extraction
+            icon.setTag(R.integer.tag_tree_item, item);
+        }
+
+        public void setClickListener(View.OnClickListener listener) {
+            icon.setOnClickListener(listener);
         }
     }
 }

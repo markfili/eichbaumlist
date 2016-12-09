@@ -15,9 +15,11 @@ public class TreeItem {
     public List<TreeItem> children;
     public int level;
     Object value;
+    public int position = -1;
+    public TreeItem parent;
 
     public TreeItem() {
-
+        parent = null;
     }
 
     public TreeItem value(Object value) {
@@ -33,6 +35,11 @@ public class TreeItem {
     public TreeItem children(TreeItem... children) {
         if (this.children == null) {
             this.children = new ArrayList<>();
+        }
+        if (parent == null) level = -1;
+        for (TreeItem child : children) {
+            child.parent = this;
+            child.level = level + 1;
         }
         Collections.addAll(this.children, children);
         return this;

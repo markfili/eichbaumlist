@@ -72,7 +72,6 @@
                             android:id="@+id/child1_child1_children_container"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_below="@+id/expand_icon"
                             android:orientation="vertical" />
 
                     </RelativeLayout>

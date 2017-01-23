@@ -4,20 +4,23 @@
               android:layout_height="wrap_content"
               android:orientation="horizontal">
 
+    <View
+        android:id="@+id/tree_spacer"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"/>
 
-    <ToggleButton
+    <Button
         android:id="@+id/expand_icon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:padding="16dp"
-        android:textOff="hidden"
-        android:textOn="showing"/>
+        android:text="interact"/>
 
     <TextView
         android:id="@+id/text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_toRightOf="@id/expand_icon"
+        android:gravity="center_vertical"
         android:paddingBottom="16dp"
         android:paddingTop="16dp"
         android:text="Child1Child1"/>

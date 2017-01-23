@@ -19,7 +19,7 @@ public class TreeItem {
     public TreeItem parent;
 
     // value to be displayed right of the icon
-    Object value;
+    Treeable value;
 
     // root element without a parent :(
     public TreeItem() {
@@ -27,7 +27,7 @@ public class TreeItem {
     }
 
     // Builder pattern to create an element with value, ...
-    public TreeItem value(Object value) {
+    public TreeItem value(Treeable value) {
         this.value = value;
         return this;
     }

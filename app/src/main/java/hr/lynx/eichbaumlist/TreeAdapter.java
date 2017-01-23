@@ -4,6 +4,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
@@ -17,9 +18,11 @@ public class TreeAdapter extends RecyclerView.Adapter<TreeAdapter.ListViewHolder
 
     private static final int PARENT_OFFSET = 1;
     private List<TreeItem> treeItems;
+    private TreeClickListener clickListener;
 
-    TreeAdapter(TreeItem root) {
+    public TreeAdapter(TreeItem root, TreeClickListener listener) {
         this.treeItems = root.children;
+        this.clickListener = listener;
     }
 
     @Override
@@ -43,14 +46,15 @@ public class TreeAdapter extends RecyclerView.Adapter<TreeAdapter.ListViewHolder
         final TreeItem item = treeItems.get(position);
         item.position = holder.getAdapterPosition();
         holder.setItem(item);
-        holder.setClickListener(new View.OnClickListener() {
+        holder.setIconClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (view.isEnabled()) {
-                    processPosition((TreeItem) view.getTag(R.integer.tag_tree_item));
+                    processPosition(item);
                 }
             }
         });
+        holder.setTextClickListener(clickListener);
     }
 
     private void processPosition(TreeItem item) {
@@ -93,29 +97,44 @@ public class TreeAdapter extends RecyclerView.Adapter<TreeAdapter.ListViewHolder
 
     public static class ListViewHolder extends RecyclerView.ViewHolder {
 
-        ToggleButton icon;
+        Button icon;
         TextView title;
+        View spacer;
 
         ListViewHolder(View itemView) {
             super(itemView);
+            spacer = itemView.findViewById(R.id.tree_spacer);
             // todo swap these views with customizable views
-            icon = (ToggleButton) itemView.findViewById(R.id.expand_icon);
+            icon = (Button) itemView.findViewById(R.id.expand_icon);
             title = (TextView) itemView.findViewById(R.id.text);
         }
 
         public void setItem(TreeItem item) {
             // set left padding to indicate child status
-            itemView.setPadding((item.parent.level + item.level) * 50, 0, 0, 0);
-
-            title.setText((String) item.value);
+            spacer.getLayoutParams().width = 50 * item.level;
+            Treeable value = item.value;
+            title.setText(value.getTitle());
             // set expandable if the item contains children
-            icon.setEnabled(item.children != null);
+            icon.setVisibility(item.children == null ? View.INVISIBLE : View.VISIBLE);
             // set TreeItem in relation to this view as view's tag for later extraction
-            icon.setTag(R.integer.tag_tree_item, item);
+            icon.setTag(R.integer.tag_tree_item, value);
         }
 
-        public void setClickListener(View.OnClickListener listener) {
+        public void setIconClickListener(View.OnClickListener listener) {
             icon.setOnClickListener(listener);
         }
+
+        public void setTextClickListener(final TreeClickListener onClickListener) {
+            title.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    onClickListener.onItemClick((Treeable) view.getTag(R.integer.tag_tree_item));
+                }
+            });
+        }
+    }
+
+    public interface TreeClickListener {
+        void onItemClick(Treeable item);
     }
 }
